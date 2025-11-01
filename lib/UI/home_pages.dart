@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'api_service.dart';
-import 'model.dart';
-import 'detail_pages.dart';
+import '../service/product_service.dart';
+import '../model/model.dart';
+import '../UI/detail_pages.dart';
+import 'category_pages.dart';
 
 class ProductPage extends StatefulWidget {
-  const ProductPage({super.key});
+  final String? selectedCategory;
+  const ProductPage({super.key, this.selectedCategory});
 
   @override
   State<ProductPage> createState() => _ProductPageState();
@@ -12,20 +14,34 @@ class ProductPage extends StatefulWidget {
 
 class _ProductPageState extends State<ProductPage> {
   late Future<List<Product>> futureProducts;
+  final ProductService _productService = ProductService();
 
   @override
   void initState() {
     super.initState();
-    futureProducts = ProductService().fetchProducts();
+    if (widget.selectedCategory == null) {
+      futureProducts = _productService.fetchProducts();
+    } else {
+      futureProducts = _productService.fetchProductsByCategory(widget.selectedCategory!);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Online Store'),
-          centerTitle: true,
-          backgroundColor: Colors.teal,
+          title: Text(widget.selectedCategory == null ? 'Online Store' : widget.selectedCategory!),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.category),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CategoryPage()),
+                );
+              },
+            ),
+          ],
         ),
         body: FutureBuilder<List<Product>>(
             future: futureProducts,
